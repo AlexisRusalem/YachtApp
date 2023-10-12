@@ -1,171 +1,142 @@
-import { StatusBar } from 'expo-status-bar';
-import { TouchableOpacity, StyleSheet, Text, View, Image, Animated} from 'react-native';
-import React, { useRef, useEffect } from 'react';
-import Controls from '../components/Controls';
-import { ProgressBar, Colors } from 'react-native-paper';
-import { MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
+import React, {useState, useEffect} from 'react';
+import {
+  Text,
+  View,
+  Platform,
+  StatusBar,
+  ScrollView,
+  StyleSheet,
+  Dimensions,
+  SafeAreaView,
+  NativeModules,
+  useColorScheme,
+  TouchableOpacity,
+  NativeEventEmitter,
+  PermissionsAndroid,
+} from 'react-native';
+import BleManager from 'react-native-ble-manager';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
 
-export default function MotorScreen({ navigation }) {
-  const anim = useRef(new Animated.Value(1));
+const MotorScreen = () => {
+  const isDarkMode = useColorScheme() === 'dark';
+  requestBluetoothPermission = async () => {
+    if (Platform.OS === 'ios') {
+      return true
+    }
+    if (Platform.OS === 'android' && PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION) {
+      const apiLevel = parseInt(Platform.Version.toString(), 10)
+  
+      if (apiLevel < 31) {
+        const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
+        return granted === PermissionsAndroid.RESULTS.GRANTED
+      }
+      if (PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN && PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT) {
+        const result = await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+          PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+        ])
+  
+        return (
+          result['android.permission.BLUETOOTH_CONNECT'] === PermissionsAndroid.RESULTS.GRANTED &&
+          result['android.permission.BLUETOOTH_SCAN'] === PermissionsAndroid.RESULTS.GRANTED &&
+          result['android.permission.ACCESS_FINE_LOCATION'] === PermissionsAndroid.RESULTS.GRANTED
+        )
+      }
+    }
+  
+    this.showErrorToast('Permission have not been granted')
+  
+    return false
+  }
+
   useEffect(() => {
-    // makes the sequence loop
-    Animated.loop(
-      // runs given animations in a sequence
-      Animated.sequence([
-        // increase size
-        Animated.timing(anim.current, {
-          toValue: 1.2, 
-          duration: 200,
-          useNativeDriver: false,
-        }),
-        // decrease size
-        Animated.timing(anim.current, {
-          toValue: 1, 
-          duration: 200,
-          useNativeDriver: false,
-        }),
-      ])
-    ).start();
+    // turn on bluetooth if it is not on
+    BleManager.enableBluetooth().then(() => {
+      console.log('Bluetooth is turned on!');
+    });
+
+      if (Platform.OS === 'android' && Platform.Version >= 23) {
+      PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      ).then(result => {
+        if (result) {
+          console.log('Permission is OK');
+        } else {
+          PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          ).then(result => {
+            if (result) {
+              console.log('User accept');
+            } else {
+              console.log('User refuse');
+            }
+          });
+        }
+      });
+    }
+
   }, []);
+
+  const backgroundStyle = {
+    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  };
   return (
-    <View style={styles.container}>
-      <Image
-        source={require('../assets/starboard.png')}
-        style={styles.image}
-        resizeMode='contain'
+    <SafeAreaView style={[backgroundStyle, styles.mainBody]}>
+      <StatusBar
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={backgroundStyle.backgroundColor}
       />
-      <Animated.View style={{position: 'absolute', top: 260, left: 230, zIndex: 1, transform: [{ scale: anim.current }] }}>
-      <TouchableOpacity
-          onPress={() => navigation.navigate("StarboardSensor")}
-          style={[
-              styles.block,
-              { backgroundColor: 'green' },
-          ]}>
-      </TouchableOpacity>
-      </Animated.View>
-      <Text style={styles.label}>Starboard shroud tension</Text>
-      <ProgressBar style={{width:"100%", height:25,marginBottom: 50}}progress={0.6} color="green" />
-      <View style={styles.controls}>
-          <Text style={styles.label}>Mesure</Text>
-      </View>
-      <View style={styles.footer}>
-
-        <View style={styles.controlsRow}>
-      
-
-          <View style={styles.tensionContainer}>
-            <Entypo name="chevron-left" size={30} color="gray" />
-            <Text style={styles.temperatureText}>2458 kg</Text>
-            <Entypo name="chevron-right" size={30} color="gray" />
+      <ScrollView
+        style={backgroundStyle}
+        contentContainerStyle={styles.mainBody}
+        contentInsetAdjustmentBehavior="automatic">
+        <View
+          style={{
+            backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+            marginBottom: 40,
+          }}>
+          <View>
+            <Text
+              style={{
+                fontSize: 30,
+                textAlign: 'center',
+                color: isDarkMode ? Colors.white : Colors.black,
+              }}>
+              React Native BLE Manager Tutorial
+            </Text>
           </View>
-      
-
-    
+          <TouchableOpacity activeOpacity={0.5} style={styles.buttonStyle}>
+            <Text style={styles.buttonTextStyle}>Scan Bluetooth Devices </Text>
+          </TouchableOpacity>
         </View>
-       <View style={styles.mesure}>
-        <Text style={styles.label}>New mesure</Text>
-       </View>
-        
-      </View>
-      <StatusBar style="inverted" />
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
-}
-
+};
+const windowHeight = Dimensions.get('window').height;
 const styles = StyleSheet.create({
-  container: {
+  mainBody: {
     flex: 1,
-    padding: 24,
-    backgroundColor:'#161818',
-  },
-  header: {
-    marginTop:50,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  title:{
-    fontSize: 24,
-    color: '#eee',
-    fontWeight:'bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    color: 'gray',
-    fontWeight:'700',
-  },
-  image: {
-    width: 600,
-    height:'50%',
-    marginTop:20,
-    marginLeft:-150, 
-  },
-  controls: {
-    flex: 1,
-    backgroundColor: '#323535',
-    borderRadius: 25,
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  optionRow:{
-    flexDirection:'row',
-    marginVertical: 20,
-    alignItems:'center',
-  },
-  optionText:{
-    color: '#eee',
-    fontSize: 18,
-    fontWeight:'bold',
-    marginLeft: 10,
-  },
-  block: {
-    borderWidth: 4,
-    height: 20,
-    width: 20,
-    borderRadius: 20,
-  },
-  footer: {
-    alignItems: 'center',
-    padding: 12,
-    marginBottom: 20,
-    marginTop: 'auto',
-  },
-  label: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: '600',
-    marginVertical: 20,
-    alignItems: 'center',
-    
-
-  },
-  controlsRow: {
-    flexDirection: 'row',
-    width: '100%',
-    justifyContent: 'space-around',
-  },
-  tensionContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom:10,
-  },
-  temperatureText: {
-    fontSize: 48,
-    fontWeight: '300',
-    color: 'white',
-    marginHorizontal: 20,
-  },
-  iconButtonContainer: {
-    alignItems: 'center',
-  },
-  mesure: {
-    width:"80%",
-    backgroundColor: '#323535',
-    left:0,
-    marginBottom:0, 
-    borderRadius:20, 
     justifyContent: 'center',
-    alignItems: 'center',
-    
+    height: windowHeight,
   },
- 
+  buttonStyle: {
+    backgroundColor: '#307ecc',
+    borderWidth: 0,
+    color: '#FFFFFF',
+    borderColor: '#307ecc',
+    height: 40,
+    alignItems: 'center',
+    borderRadius: 30,
+    marginLeft: 35,
+    marginRight: 35,
+    marginTop: 15,
+  },
+  buttonTextStyle: {
+    color: '#FFFFFF',
+    paddingVertical: 10,
+    fontSize: 16,
+  },
 });
+export default MotorScreen;

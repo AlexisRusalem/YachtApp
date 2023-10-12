@@ -1,19 +1,29 @@
 {
   "expo": {
     "name": "YachtApp",
-    "slug": "YachtApp",
+    "slug": "yachtapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "plugins": [
-      "@config-plugins/react-native-ble-plx"
-    ],
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "plugins": [
+      [
+        "@config-plugins/react-native-ble-plx",
+        {
+          "isBackgroundEnabled": true,
+          "modes": [
+            "peripheral",
+            "central"
+          ],
+          "bluetoothAlwaysPermission": "Allow $(PRODUCT_NAME) to connect to bluetooth devices"
+        }
+      ]
+    ],
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -31,15 +41,17 @@
         "android.permission.BLUETOOTH",
         "android.permission.BLUETOOTH_ADMIN",
         "android.permission.BLUETOOTH_CONNECT"
-      ]
+      ],
+      "package": "com.rusalem_alex.yachtapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "87dc1a04-53c2-439c-8d48-6755a009f2b8"
+        "projectId": "cfdd18d1-65b6-4e07-9fdb-f98c68b9bb4c"
       }
-    }
+    },
+    "owner": "rusalem_alex"
   }
 }

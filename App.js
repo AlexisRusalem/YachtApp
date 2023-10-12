@@ -12,12 +12,10 @@ import PortSensor from './screens/PortScreen';
 import SailingScreen from './screens/SailingScreen';
 import MotorScreen from './screens/MotorScreen';
 import AnchorScreen from './screens/AnchorScreen';
-//import BLTScreen from './screens/BLTScreen';
-import SettingsScreen from './screens/SettingsScreen';
-import { View } from 'react-native';
+import 'expo-dev-client';
 
-import {MaterialCommunityIcons } from '@expo/vector-icons';
-import { FontAwesome5 } from '@expo/vector-icons'
+//import BLTScreen from './screens/BLTScreen';
+
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();

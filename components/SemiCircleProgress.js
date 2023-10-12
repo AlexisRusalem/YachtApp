@@ -6,6 +6,7 @@ export default class SemiCircleProgress extends React.PureComponent {
 
     static propTypes = {
         progressShadowColor: PropTypes.string,
+        interiorCircleStyle: ViewPropTypes.style,
         progressColor: PropTypes.string,
         interiorCircleColor: PropTypes.string,
         circleRadius: PropTypes.number,
